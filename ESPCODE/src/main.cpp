@@ -4,11 +4,11 @@
 #include <HTTPClient.h>
 #include <ArduinoJson.h>
 
-const char* ssid = "HOTSPOT_NAME";
-const char* password = "HOTSPOT_PASS";
+const char* ssid = "Sarbatori fericite";
+const char* password = "parola123";
 
 // DUPĂ deploy pe Render: ex. "https://numele-tau.onrender.com"
-String API_BASE = "https://YOUR-RENDER-APP.onrender.com";
+String API_BASE = "https://esp32-4do0.onrender.com";
 
 const int LED_PIN = 4; // GPIO4 (LED-ul tău)
 
