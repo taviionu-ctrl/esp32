@@ -1,0 +1,16 @@
+# =====================
+# Node.js
+# =====================
+backend/node_modules/
+
+# =====================
+# PlatformIO
+# =====================
+ESPCODE/.pio/
+ESPCODE/.vscode/
+
+# =====================
+# OS / Editor
+# =====================
+.DS_Store
+.vscode/
