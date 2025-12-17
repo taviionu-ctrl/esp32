@@ -33,10 +33,13 @@ void setup() {
 }
 
 void loop() {
-  if (millis() - lastPoll < POLL_MS) return;
+  if (millis() - lastPoll < POLL_MS) return;  // Încearcă să faci cererea o dată la 1.5 secunde
   lastPoll = millis();
 
-  if (WiFi.status() != WL_CONNECTED) return;
+  if (WiFi.status() != WL_CONNECTED) {
+    Serial.println("WiFi not connected, retrying...");
+    return;
+  }
 
   WiFiClientSecure client;
   client.setInsecure(); // HTTPS simplu (fără verificare certificat) — pentru proiect
@@ -56,7 +59,7 @@ void loop() {
     StaticJsonDocument<64> doc;
     auto err = deserializeJson(doc, payload);
     if (!err) {
-      int led = doc["led"] | 0;
+      int led = doc["led"] | 0; // Dacă nu există "led", folosește valoarea 0 (LED OFF)
       digitalWrite(LED_PIN, led ? HIGH : LOW);
       Serial.printf("LED command = %d\n", led);
     } else {
@@ -67,4 +70,6 @@ void loop() {
   }
 
   https.end();
+
+  delay(500);  // Delay suplimentar pentru a reduce frecvența cererilor
 }
