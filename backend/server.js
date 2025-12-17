@@ -1,70 +1,33 @@
-#include <Arduino.h>
-#include <WiFi.h>
-#include <WiFiClientSecure.h>
-#include <HTTPClient.h>
-#include <ArduinoJson.h>
+const express = require("express");
+const cors = require("cors");
 
-const char* ssid = "Sarbatori fericite";
-const char* password = "parola123";
+const app = express();
+app.use(cors());
+app.use(express.json());
 
-// DUPĂ deploy pe Render: ex. "https://numele-tau.onrender.com"
-String API_BASE = "https://esp32-4do0.onrender.com";
+// ultima comandă (simplu, fără DB)
+let desiredLed = 0; // 0=OFF, 1=ON
 
-const int LED_PIN = 4; // GPIO4 (LED-ul tău)
+// SITE: apasă buton -> setează comanda
+app.get("/api/led/on", (req, res) => {
+  desiredLed = 1;
+  res.status(204).end(); // fără feedback
+});
 
-unsigned long lastPoll = 0;
-const unsigned long POLL_MS = 1500;
+app.get("/api/led/off", (req, res) => {
+  desiredLed = 0;
+  res.status(204).end();
+});
 
-void setup() {
-  Serial.begin(115200);
+// ESP32: citește comanda
+app.get("/api/led/state", (req, res) => {
+  res.json({ led: desiredLed });
+});
 
-  pinMode(LED_PIN, OUTPUT);
-  digitalWrite(LED_PIN, LOW);
+// Adăugăm ruta pentru '/'
+app.get("/", (req, res) => {
+  res.send("Server is running!");
+});
 
-  WiFi.begin(ssid, password);
-  Serial.print("Connecting to WiFi");
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(400);
-    Serial.print(".");
-  }
-  Serial.println("\nWiFi connected!");
-  Serial.print("ESP32 local IP: ");
-  Serial.println(WiFi.localIP());
-}
-
-void loop() {
-  if (millis() - lastPoll < POLL_MS) return;
-  lastPoll = millis();
-
-  if (WiFi.status() != WL_CONNECTED) return;
-
-  WiFiClientSecure client;
-  client.setInsecure(); // HTTPS simplu (fără verificare certificat) — pentru proiect
-
-  HTTPClient https;
-  String url = API_BASE + "/api/led/state";
-
-  if (!https.begin(client, url)) {
-    Serial.println("HTTPS begin failed");
-    return;
-  }
-
-  int code = https.GET();
-  if (code == 200) {
-    String payload = https.getString();
-
-    StaticJsonDocument<64> doc;
-    auto err = deserializeJson(doc, payload);
-    if (!err) {
-      int led = doc["led"] | 0;
-      digitalWrite(LED_PIN, led ? HIGH : LOW);
-      Serial.printf("LED command = %d\n", led);
-    } else {
-      Serial.println("JSON parse error");
-    }
-  } else {
-    Serial.printf("HTTP code: %d\n", code);
-  }
-
-  https.end();
-}
+const port = process.env.PORT || 3000;
+app.listen(port, () => console.log("Listening on", port));
